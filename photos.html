@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Share Photos · Manish &amp; Alivia</title>
+  <meta name="description" content="Share your photos from Manish and Alivia's wedding.">
+  <meta name="theme-color" content="#5A1220">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Share your wedding photos with Manish &amp; Alivia">
+  <meta property="og:description" content="Add up to 5 of your favourite moments.">
+  <meta property="og:url" content="https://manishdhasmana49.github.io/manish-weds-alivia/photos.html">
+  <meta property="og:image" content="https://manishdhasmana49.github.io/manish-weds-alivia/images/og-image.jpg">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=optional" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="config.js" defer></script>
+  <script src="js/common.js" defer></script>
+  <script src="js/photos.js" defer></script>
+</head>
+<body class="photos-page">
+  <div class="paar" aria-hidden="true"></div>
+  <header class="photo-head">
+    <svg aria-hidden="true"><use href="images/motifs.svg#m-buransh"/></svg>
+    <h1>Share Your Photos</h1>
+    <p id="coupleLine">Manish &amp; Alivia</p>
+  </header>
+  <main class="photo-main">
+    <div class="card form">
+      <div class="field"><label for="guestName">Your name</label><input id="guestName" autocomplete="name" maxlength="60" required><p class="err" id="guestName-err"></p></div>
+      <div class="field"><label for="eventSelect">Event</label><select id="eventSelect"></select></div>
+      <div class="quota"><strong id="quotaText">0 of 5 used</strong><div class="meter" aria-hidden="true"><i id="quotaBar"></i></div></div>
+      <div class="pick">
+        <label class="btn primary" id="takeLabel"><svg aria-hidden="true"><use href="images/motifs.svg#i-camera"/></svg>Take Photo<input id="takeInput" class="vh" type="file" accept="image/*" capture="environment"></label>
+        <label class="btn" id="galleryLabel"><svg aria-hidden="true"><use href="images/motifs.svg#i-gallery"/></svg>Choose from Gallery<input id="galleryInput" class="vh" type="file" accept="image/*" multiple></label>
+      </div>
+      <p class="status" id="photoStatus" role="status"></p>
+      <ul class="thumbs" id="thumbs"></ul>
+      <button class="btn primary wide" id="uploadBtn" type="button" hidden>Upload</button>
+    </div>
+    <p class="back"><a href="index.html">Back to the wedding website</a></p>
+  </main>
+</body>
+</html>

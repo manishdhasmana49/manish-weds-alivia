@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- Original motifs drawn for Manish & Alivia. -->
+  <symbol id="i-pin" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.500C5 14.800 12 21 12 21Z"/><circle cx="12" cy="9.500" r="2.400" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5.500" width="16" height="15" rx="2"/><path d="M4 10h16M8.500 3v4M15.500 3v4"/></g></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.500"/><path d="M12 7.500V12l3 2"/></g></symbol>
+  <symbol id="i-shirt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M9 3.500 4 6l1.500 4L8 9v11.500h8V9l2.500 1L20 6l-5-2.500a3 3 0 0 1-6 0Z"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.500a9.400 9.400 0 0 0-8.100 14.200L2.700 21.300l4.700-1.200A9.400 9.400 0 1 0 12 2.500Zm0 17.100c-1.500 0-2.900-.4-4.100-1.100l-.3-.2-2.700.7.700-2.600-.2-.3A7.700 7.700 0 1 1 12 19.600Zm4.300-5.800c-.2-.1-1.400-.7-1.600-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.200-.3.200-.5.100a6.300 6.300 0 0 1-3.100-2.700c-.2-.3 0-.5.100-.6l.4-.5.200-.4v-.4l-.7-1.700c-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.100-.6.300-.2.200-.8.800-.8 2s.8 2.300 1 2.500c.1.200 1.700 2.600 4.100 3.600 1.500.7 2.100.7 2.900.6.500-.1 1.400-.6 1.600-1.100.2-.6.2-1 .1-1.100 0-.2-.2-.2-.4-.4Z"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3.500L9 5.500h6L16.500 8H20a1 1 0 0 1 1 1v9.500a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13.500" r="3.500"/></g></symbol>
+  <symbol id="i-gallery" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.500" y="4.500" width="17" height="15" rx="2"/><circle cx="8.500" cy="9.500" r="1.500"/><path d="m4 17 5-4 3.500 2.500L16 12l4.500 4"/></g></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.400" stroke-linecap="round" d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.400" stroke-linecap="round" stroke-linejoin="round" d="m5 12.500 4.500 4.500L19 7"/></symbol>
+
+  <!-- Buransh (rhododendron) cluster -->
+  <symbol id="m-buransh" viewBox="0 0 64 64">
+    <path fill="#24493A" d="M32 36C20 38 11 46 7 58c12-1 22-8 27-19ZM33 36c11 3 19 10 24 21-12 0-21-6-27-17Z"/>
+    <g fill="#C4213A" stroke="#7E1226" stroke-width=".8">
+      <path d="M32 31C25 25 24 15 32 7c8 8 7 18 0 24Z"/>
+      <path d="M32 31c-9 1-17-4-20-15 11-2 19 3 20 15Z"/>
+      <path d="M32 31c9 1 17-4 20-15-11-2-19 3-20 15Z"/>
+      <path d="M32 32c-7 5-16 5-23-2 7-7 17-6 23 2Z"/>
+      <path d="M32 32c7 5 16 5 23-2-7-7-17-6-23 2Z"/>
+    </g>
+    <circle cx="32" cy="29" r="3.200" fill="#E8A317"/>
+  </symbol>
+
+  <!-- Deodar -->
+  <symbol id="m-deodar" viewBox="0 0 48 96">
+    <path fill="#4A2E1F" d="M22 76h4v20h-4z"/>
+    <path fill="currentColor" d="M24 2c2 8 6 12 10 16h-5c3 6 8 10 13 14h-8c4 7 9 11 14 16H37c3 6 7 10 11 15H35c2 5 5 9 8 14H5c3-5 6-9 8-14H0c4-5 8-9 11-15H1c5-5 10-9 14-16H7c5-4 10-8 13-14h-6c4-4 8-8 10-16Z"/>
+  </symbol>
+
+  <!-- Alpona rosette -->
+  <symbol id="m-alpona" viewBox="-100 -100 200 200">
+    <g fill="none" stroke="currentColor" stroke-width="1.700" stroke-linecap="round">
+      <circle r="96"/><circle r="72"/><circle r="22"/><circle r="9"/>
+      <g id="alpona-a"><path id="alpona-p" d="M0-24C13-38 13-57 0-70-13-57-13-38 0-24Z"/><path d="M0-32C5-40 5-52 0-61-5-52-5-40 0-32Z"/><circle cy="-84" r="4"/></g>
+      <use href="#alpona-a" xlink:href="#alpona-a" transform="rotate(45)"/><use href="#alpona-a" xlink:href="#alpona-a" transform="rotate(90)"/><use href="#alpona-a" xlink:href="#alpona-a" transform="rotate(135)"/>
+      <use href="#alpona-a" xlink:href="#alpona-a" transform="rotate(180)"/><use href="#alpona-a" xlink:href="#alpona-a" transform="rotate(225)"/><use href="#alpona-a" xlink:href="#alpona-a" transform="rotate(270)"/><use href="#alpona-a" xlink:href="#alpona-a" transform="rotate(315)"/>
+    </g>
+  </symbol>
+
+  <!-- Shankha -->
+  <symbol id="m-shankha" viewBox="0 0 64 64">
+    <g fill="#FFFDF7" stroke="#7E1226" stroke-width="1.800" stroke-linejoin="round">
+      <path d="M8 34c3-13 16-23 30-22 8 1 15 5 19 11-5 2-8 5-9 9 3 5 3 11 0 17-12 5-25 3-33-4-5-3-7-7-7-11Z"/>
+      <path fill="none" d="M20 22c3 7 3 19-2 27M31 15c4 10 4 25-2 38M41 14c3 7 4 13 3 19"/>
+    </g>
+  </symbol>
+
+  <!-- Shola-pith topor -->
+  <symbol id="m-topor" viewBox="0 0 64 72">
+    <g fill="#FFFDF7" stroke="#7E1226" stroke-width="1.500" stroke-linejoin="round">
+      <path d="M12 62 17 25 24 34 32 5l8 29 7-9 5 37Z"/>
+      <path fill="#E8A317" d="M9 60h46v7H9z"/>
+      <path fill="none" d="M20 54c4-5 8-5 12 0 4-5 8-5 12 0M23 44c3-3 6-3 9 0 3-3 6-3 9 0M32 16v18"/>
+    </g>
+    <circle cx="32" cy="36" r="2.500" fill="#C4213A"/>
+  </symbol>
+
+  <!-- Dhol and damau -->
+  <symbol id="m-dhol" viewBox="0 0 72 48">
+    <g stroke="#5A1220" stroke-width="1.500">
+      <rect x="6" y="9" width="36" height="30" rx="6" fill="#B3201F"/>
+      <path fill="none" stroke="#FFFDF7" d="m11 10 8 28 8-28 8 28"/>
+      <ellipse cx="6" cy="24" rx="4" ry="15" fill="#F4E5C4"/><ellipse cx="42" cy="24" rx="4" ry="15" fill="#F4E5C4"/>
+      <path fill="#A97F2A" d="M50 22h18c0 11-4 18-9 18s-9-7-9-18Z"/><ellipse cx="59" cy="22" rx="9" ry="4" fill="#F4E5C4"/>
+    </g>
+  </symbol>
+
+  <!-- Shehnai -->
+  <symbol id="m-shehnai" viewBox="0 0 72 48">
+    <g stroke="#5A1220" stroke-width="1.500" stroke-linejoin="round">
+      <path fill="#7A4A25" d="m10 13 42 15-3 7L7 19Z"/>
+      <path fill="#E8A317" d="m49 26 15 2 5 14-22-7Z"/>
+      <path fill="#A97F2A" d="M4 10 11 12 8 20 2 17Z"/>
+      <g fill="#F4E5C4"><circle cx="20" cy="19.500" r="1.700"/><circle cx="28" cy="22.500" r="1.700"/><circle cx="36" cy="25.500" r="1.700"/><circle cx="44" cy="28.500" r="1.700"/></g>
+    </g>
+  </symbol>
+</svg>
