@@ -29,8 +29,8 @@ window.WEDDING = {
   // Google Apps Script backend. See SETUP.md.
   // This page is public, so the token only keeps out casual bots.
   backend: {
-    url: "TODO", // https://script.google.com/macros/s/.../exec
-    token: "TODO", // printed by the setup() function
+    url: "https://script.google.com/macros/s/AKfycbwHmkY1pYDVzyekiUZ6QU5bv18Tg2yhdalp3JEw16MOiUmnSz0IX4DCuOH4dBV2h00diw/exec",
+    token: "d910dc97082e4756bc61ad5bc89e0463",
   },
 
   // Section headings: the title is upright and the second line is italic.
