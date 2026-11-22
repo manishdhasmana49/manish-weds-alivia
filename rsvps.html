@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Private · Manish &amp; Alivia</title>
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#465136">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="config.js" defer></script>
+  <script src="js/common.js" defer></script>
+  <script src="js/admin.js" defer></script>
+</head>
+<body class="photos-page">
+  <header class="photo-head">
+    <span class="mono" aria-hidden="true">M<i>&amp;</i>A</span>
+    <h1>Guest RSVPs</h1>
+    <p>Private page</p>
+  </header>
+  <main class="admin-main">
+    <form id="loginForm" class="form admin-login">
+      <div class="field"><label for="adminPassword">Password</label><input id="adminPassword" type="password" autocomplete="current-password" required></div>
+      <p class="status bad" id="loginStatus" role="alert"></p>
+      <button class="btn primary wide" id="loginBtn" type="submit">View RSVPs</button>
+    </form>
+    <section id="adminData" hidden>
+      <div class="admin-stats" id="adminStats"></div>
+      <div class="admin-tools"><button class="btn small" id="refreshBtn" type="button">Refresh</button><button class="btn small" id="lockBtn" type="button">Lock</button></div>
+      <p class="status bad" id="dataStatus" role="alert"></p>
+      <ol class="admin-list" id="adminList"></ol>
+    </section>
+  </main>
+</body>
+</html>

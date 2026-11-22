@@ -1,6 +1,6 @@
 # Manish & Alivia wedding website
 
-A static, mobile-first wedding site for GitHub Pages. RSVPs go to a Google Sheet and guest photos go to Google Drive through Google Apps Script.
+A static, mobile-first wedding site for GitHub Pages. RSVPs go to a private GitHub repo and guest photos go to Google Drive through Google Apps Script.
 
 - Live site: <https://manishdhasmana49.github.io/manish-weds-alivia/>
 - Groom's side: <https://manishdhasmana49.github.io/manish-weds-alivia/?side=groom>
@@ -43,6 +43,7 @@ Open <http://localhost:8000>, then use your browser's device toolbar for a phone
 
 ```text
 index.html, photos.html   Pages
+rsvps.html                Hidden, password-protected RSVP list
 config.js                 All wedding content
 css/, js/                 Styling and behaviour
 images/                   Motifs, preview image and QR codes

@@ -1,35 +1,32 @@
 /**
  * Manish & Alivia wedding backend (Google Apps Script).
- * Run setup() once, then deploy as a web app. See SETUP.md.
- * This file is public on GitHub, so secrets live in Script Properties.
+ * RSVPs are stored in a private GitHub repo. Photos are stored in Google Drive.
+ * This file is public on GitHub, so secrets live in Script Properties:
+ * GITHUB_TOKEN and ADMIN_PASSWORD. See SETUP.md.
  */
 var DRIVE_FOLDER_ID = '1_hC7qifCuOezrvwijxSnAvIkNGzyK5HO';
-var RSVP_SHEET = 'RSVP';
-var UPLOADS_SHEET = 'Uploads';
+var GITHUB_REPO = 'manishdhasmana49/manish-weds-alivia-rsvps';
+var RSVP_FILE = 'rsvps.json';
+var UPLOAD_LOG = 'uploads-log.json';
 var PHOTO_LIMIT = 5;
 var MAX_BYTES = 10 * 1024 * 1024;
+var MAX_LOGIN_FAILURES = 8;
+var LOGIN_LOCK_SECONDS = 900;
 
-var RSVP_HEADERS = ['Timestamp', 'Full Name', 'Phone', 'Side', 'Attending', 'Guests', 'Events',
-  'Arrival', 'Departure', 'Travelling With Group', 'Accommodation Needed', 'Food', 'Message'];
-var UPLOAD_HEADERS = ['Time', 'Name', 'Device ID', 'Event', 'File URL', 'Upload ID'];
-
-/** Run once from the editor. Safe to run again: it keeps the existing token. */
+/** Run once from the editor, after adding the two Script Properties. */
 function setup() {
   var props = PropertiesService.getScriptProperties();
-  var active = SpreadsheetApp.getActiveSpreadsheet();
-  if (!props.getProperty('SHEET_ID')) {
-    if (!active) throw new Error('Open Apps Script from the Sheet (Extensions > Apps Script), or set SHEET_ID.');
-    props.setProperty('SHEET_ID', active.getId());
-  }
+  if (!props.getProperty('GITHUB_TOKEN')) throw new Error('Add GITHUB_TOKEN in Project Settings > Script Properties.');
+  if (!props.getProperty('ADMIN_PASSWORD')) throw new Error('Add ADMIN_PASSWORD in Project Settings > Script Properties.');
+
   // Fails here, not on the wedding day, if this account can't add files to the folder.
-  var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
-  folder.createFile('setup-check.txt', 'Safe to delete.').setTrashed(true);
-  props.setProperty('ROOT_FOLDER_ID', DRIVE_FOLDER_ID);
-  if (!props.getProperty('TOKEN')) {
-    props.setProperty('TOKEN', Utilities.getUuid().replace(/-/g, ''));
-  }
-  getSheet_(RSVP_SHEET, RSVP_HEADERS);
-  getSheet_(UPLOADS_SHEET, UPLOAD_HEADERS);
+  DriveApp.getFolderById(DRIVE_FOLDER_ID).createFile('setup-check.txt', 'Safe to delete.').setTrashed(true);
+
+  // Confirms the GitHub token can read and write the private RSVP repo.
+  var current = readRsvps_();
+  writeRsvps_(current.rows, current.sha);
+
+  if (!props.getProperty('TOKEN')) props.setProperty('TOKEN', Utilities.getUuid().replace(/-/g, ''));
   Logger.log('Setup complete. Paste this into config.js as backend.token: ' + props.getProperty('TOKEN'));
 }
 
@@ -45,6 +42,7 @@ function doPost(e) {
     if (body.action === 'rsvp') return json_(withLock_(function () { return saveRsvp_(body); }));
     if (body.action === 'quota') return json_(quota_(body));
     if (body.action === 'upload') return json_(upload_(body));
+    if (body.action === 'admin_rsvps') return json_(adminRsvps_(body));
     return json_(fail_('bad_action', 'Unknown request.'));
   } catch (err) {
     console.error(err);
@@ -67,27 +65,72 @@ function saveRsvp_(b) {
   var yes = attending === 'yes';
   var guests = yes ? parseInt(b.guests, 10) : 0;
   if (yes && (!(guests >= 1) || guests > 50)) return fail_('invalid', 'Please enter the number of guests.');
-  var events = yes && Array.isArray(b.events) ? b.events.slice(0, 20).map(function (x) { return clean_(x, 80); }).join(', ') : '';
 
-  var row = [new Date(), safe_(name), phone, side, attending, guests, safe_(events),
-    yes ? dateText_(b.arrival) : '', yes ? dateText_(b.departure) : '',
-    yes && side === 'groom' ? yesNo_(b.withGroup) : '', yes ? yesNo_(b.accommodation) : '',
-    yes ? safe_(clean_(b.food, 30)) : '', safe_(clean_(b.message, 1000))];
+  var now = new Date().toISOString();
+  var record = {
+    firstSubmitted: now, updated: now, name: name, phone: phone, side: side, attending: attending, guests: guests,
+    events: yes && Array.isArray(b.events) ? b.events.slice(0, 20).map(function (x) { return clean_(x, 80); }) : [],
+    arrival: yes ? dateText_(b.arrival) : '', departure: yes ? dateText_(b.departure) : '',
+    withGroup: yes && side === 'groom' ? yesNo_(b.withGroup) : '', accommodation: yes ? yesNo_(b.accommodation) : '',
+    food: yes ? clean_(b.food, 30) : '', message: clean_(b.message, 1000),
+  };
 
-  var sheet = getSheet_(RSVP_SHEET, RSVP_HEADERS);
-  var last = sheet.getLastRow();
-  var rowNumber = -1;
-  if (last > 1) {
-    var phones = sheet.getRange(2, 3, last - 1, 1).getDisplayValues();
-    for (var i = 0; i < phones.length; i++) {
-      if (String(phones[i][0]).replace(/\D/g, '').slice(-10) === phone) { rowNumber = i + 2; break; }
-    }
+  for (var attempt = 0; attempt < 2; attempt++) {
+    var data = readRsvps_();
+    var index = -1;
+    data.rows.forEach(function (r, i) { if (r.phone === phone) index = i; });
+    var updated = index >= 0;
+    if (updated) { record.firstSubmitted = data.rows[index].firstSubmitted; data.rows[index] = record; } else data.rows.push(record);
+    if (writeRsvps_(data.rows, data.sha)) return { ok: true, updated: updated };
   }
-  var updated = rowNumber > 0;
-  if (!updated) rowNumber = last + 1;
-  sheet.getRange(rowNumber, 3).setNumberFormat('@');
-  sheet.getRange(rowNumber, 1, 1, row.length).setValues([row]);
-  return { ok: true, updated: updated };
+  return fail_('busy', 'Please try again in a moment.', true);
+}
+
+function adminRsvps_(b) {
+  var cache = CacheService.getScriptCache();
+  var failures = parseInt(cache.get('admin_failures'), 10) || 0;
+  if (failures >= MAX_LOGIN_FAILURES) return fail_('locked', 'Too many attempts. Please try again in 15 minutes.');
+  var expected = PropertiesService.getScriptProperties().getProperty('ADMIN_PASSWORD');
+  if (!expected || digest_(String(b.password || '')) !== digest_(expected)) {
+    cache.put('admin_failures', String(failures + 1), LOGIN_LOCK_SECONDS);
+    return fail_('bad_password', 'That password is not correct.');
+  }
+  cache.remove('admin_failures');
+  return { ok: true, rows: readRsvps_().rows };
+}
+
+/* ---------- Private GitHub storage ---------- */
+
+function github_(method, payload) {
+  var options = {
+    method: method, muteHttpExceptions: true, contentType: 'application/json',
+    headers: {
+      Authorization: 'Bearer ' + PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN'),
+      Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28',
+    },
+  };
+  if (payload) options.payload = JSON.stringify(payload);
+  return UrlFetchApp.fetch('https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + RSVP_FILE, options);
+}
+
+function readRsvps_() {
+  var res = github_('get');
+  if (res.getResponseCode() !== 200) throw new Error('GitHub read failed: ' + res.getResponseCode());
+  var file = JSON.parse(res.getContentText());
+  var text = Utilities.newBlob(Utilities.base64Decode(String(file.content).replace(/\s/g, ''))).getDataAsString('UTF-8');
+  return { rows: JSON.parse(text || '[]'), sha: file.sha };
+}
+
+/** Returns false when another save got there first, so the caller can retry. */
+function writeRsvps_(rows, sha) {
+  var res = github_('put', {
+    message: 'Update RSVPs', sha: sha,
+    content: Utilities.base64Encode(JSON.stringify(rows, null, 2) + '\n', Utilities.Charset.UTF_8),
+  });
+  var code = res.getResponseCode();
+  if (code === 200 || code === 201) return true;
+  if (code === 409) return false;
+  throw new Error('GitHub write failed: ' + code);
 }
 
 /* ---------- Photos ---------- */
@@ -95,7 +138,7 @@ function saveRsvp_(b) {
 function quota_(b) {
   var deviceId = cleanDevice_(b.deviceId);
   if (!deviceId) return fail_('invalid', 'Missing device ID.');
-  var used = readUploads_().filter(function (r) { return r[2] === deviceId; }).length;
+  var used = readUploads_().rows.filter(function (r) { return r.deviceId === deviceId; }).length;
   return { ok: true, used: used, limit: PHOTO_LIMIT };
 }
 
@@ -120,56 +163,61 @@ function upload_(b) {
 
   // The lock makes the 5-photo count reliable when a guest double-submits.
   return withLock_(function () {
-    var rows = readUploads_();
+    var log = readUploads_();
     // A retry after a lost response must not save a duplicate or use up quota.
-    var mine = rows.filter(function (r) { return r[2] === deviceId; });
-    var previous = mine.filter(function (r) { return r[5] === uploadId; })[0];
+    var mine = log.rows.filter(function (r) { return r.deviceId === deviceId; });
+    var previous = mine.filter(function (r) { return r.uploadId === uploadId; })[0];
     if (previous) return { ok: true, duplicate: true, used: mine.length, limit: PHOTO_LIMIT };
     if (mine.length >= PHOTO_LIMIT) {
       return { ok: false, code: 'limit', error: 'You have already shared ' + PHOTO_LIMIT + ' photos. Thank you!', used: mine.length, limit: PHOTO_LIMIT };
     }
 
-    var now = new Date();
     var folder = eventFolder_(eventName);
     var filename = uniqueFilename_(folder, name);
     var file = folder.createFile(Utilities.newBlob(bytes, 'image/jpeg', filename));
-    getSheet_(UPLOADS_SHEET, UPLOAD_HEADERS).appendRow([now, safe_(name), deviceId, safe_(eventName), file.getUrl(), uploadId]);
+    log.rows.push({ time: new Date().toISOString(), name: name, deviceId: deviceId, event: eventName, fileUrl: file.getUrl(), uploadId: uploadId });
+    writeUploads_(log);
     return { ok: true, used: mine.length + 1, limit: PHOTO_LIMIT };
   });
 }
 
 function readUploads_() {
-  var sheet = getSheet_(UPLOADS_SHEET, UPLOAD_HEADERS);
-  var last = sheet.getLastRow();
-  return last > 1 ? sheet.getRange(2, 1, last - 1, UPLOAD_HEADERS.length).getDisplayValues() : [];
+  var found = DriveApp.getFolderById(DRIVE_FOLDER_ID).getFilesByName(UPLOAD_LOG);
+  if (!found.hasNext()) return { file: null, rows: [] };
+  var file = found.next();
+  return { file: file, rows: JSON.parse(file.getBlob().getDataAsString('UTF-8') || '[]') };
+}
+
+function writeUploads_(log) {
+  var text = JSON.stringify(log.rows);
+  if (log.file) log.file.setContent(text);
+  else DriveApp.getFolderById(DRIVE_FOLDER_ID).createFile(UPLOAD_LOG, text, 'application/json');
 }
 
 function eventFolder_(eventName) {
-  var id = PropertiesService.getScriptProperties().getProperty('ROOT_FOLDER_ID');
-  if (!id) throw new Error('Run setup() first.');
-  var root = DriveApp.getFolderById(id);
+  var root = DriveApp.getFolderById(DRIVE_FOLDER_ID);
   var existing = root.getFoldersByName(eventName);
   return existing.hasNext() ? existing.next() : root.createFolder(eventName);
 }
 
-/* ---------- Helpers ---------- */
-
-function getSheet_(name, headers) {
-  var id = PropertiesService.getScriptProperties().getProperty('SHEET_ID');
-  if (!id) throw new Error('Run setup() first.');
-  var book = SpreadsheetApp.openById(id);
-  var sheet = book.getSheetByName(name) || book.insertSheet(name);
-  if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
-    sheet.setFrozenRows(1);
-  }
-  return sheet;
+/** Names a photo after the guest: "Riya Sharma.jpg", then "Riya Sharma 2.jpg". */
+function uniqueFilename_(folder, guestName) {
+  var base = String(guestName).replace(/[\/\\:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Guest';
+  var filename = base + '.jpg';
+  for (var n = 2; folder.getFilesByName(filename).hasNext(); n++) filename = base + ' ' + n + '.jpg';
+  return filename;
 }
+
+/* ---------- Helpers ---------- */
 
 function withLock_(fn) {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(25000)) return fail_('busy', 'Many guests are sending at once. Retrying…', true);
   try { return fn(); } finally { lock.releaseLock(); }
+}
+
+function digest_(text) {
+  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, text, Utilities.Charset.UTF_8));
 }
 
 function normalisePhone_(value) {
@@ -183,11 +231,6 @@ function clean_(value, max) {
   return String(value == null ? '' : value).replace(/[\u0000-\u001F\u007F]+/g, ' ').trim().slice(0, max);
 }
 
-/** Stops guest text from running as a spreadsheet formula. */
-function safe_(text) {
-  return /^[=+\-@]/.test(text) ? "'" + text : text;
-}
-
 function cleanDevice_(value) {
   var id = String(value || '');
   return /^[A-Za-z0-9-]{8,64}$/.test(id) ? id : '';
@@ -195,19 +238,11 @@ function cleanDevice_(value) {
 
 function dateText_(value) {
   var text = String(value || '');
-  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? "'" + text : '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : '';
 }
 
 function yesNo_(value) {
   return value === 'yes' || value === 'no' ? value : '';
-}
-
-/** Names a photo after the guest: "Riya Sharma.jpg", then "Riya Sharma 2.jpg". */
-function uniqueFilename_(folder, guestName) {
-  var base = String(guestName).replace(/[\/\\:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Guest';
-  var filename = base + '.jpg';
-  for (var n = 2; folder.getFilesByName(filename).hasNext(); n++) filename = base + ' ' + n + '.jpg';
-  return filename;
 }
 
 function fail_(code, error, retryable) {

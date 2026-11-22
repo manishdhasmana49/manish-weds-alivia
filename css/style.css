@@ -212,6 +212,26 @@ input::placeholder, textarea::placeholder { color: #736F60; }
 .remove svg { width: 18px; height: 18px; } .remove[disabled] { visibility: hidden; }
 .back { margin-top: 18px; text-align: center; font-size: .9rem; }
 
+/* Private RSVP page */
+.admin-main { max-width: 760px; margin: 0 auto; padding: 14px 16px 42px; }
+.admin-login { max-width: 420px; margin: 0 auto; padding: 20px; background: var(--paper); border: 1px solid var(--line); }
+.admin-login .status:empty { display: none; }
+.admin-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.admin-stats div { padding: 12px; background: var(--paper); border: 1px solid var(--line); text-align: center; }
+.admin-stats b { display: block; font: 400 2.2rem/1 var(--display); font-variant-numeric: lining-nums; }
+.admin-stats span { color: var(--muted); font-size: .76rem; }
+.admin-tools { display: flex; justify-content: flex-end; gap: 7px; margin: 14px 0; }
+.admin-list { list-style: none; display: grid; gap: 12px; margin: 0; padding: 0; }
+.admin-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.admin-top h2 { font-size: 1.8rem; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.pill { flex: none; padding: 3px 9px; font-size: .72rem; font-weight: 600; }
+.pill.yes { background: #E4EBD8; color: #2F3A1E; } .pill.no { background: #F8E1DC; color: #842219; }
+.admin-phone { display: inline-flex; align-items: center; min-height: 36px; font-weight: 600; }
+.admin-card dl { margin: 6px 0 0; }
+.admin-card dl div { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); font-size: .9rem; }
+.admin-card dt { color: var(--muted); } .admin-card dd { margin: 0; overflow-wrap: anywhere; }
+@media (min-width: 620px) { .admin-stats { grid-template-columns: repeat(4, 1fr); } }
+
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
 
 @media (min-width: 620px) {

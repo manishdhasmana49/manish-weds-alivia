@@ -1,49 +1,64 @@
 # Connect RSVPs and photo uploads
 
-This takes about 10 minutes. Use the Google account that should own the guest list and photos.
+This takes about 10 minutes.
 
-## 1. Create the Sheet
+- RSVPs are saved in the **private** GitHub repo `manish-weds-alivia-rsvps`, in `rsvps.json`.
+- You read them on the hidden, password-protected `rsvps.html` page.
+- Guest photos go to [this Drive folder](https://drive.google.com/drive/folders/1_hC7qifCuOezrvwijxSnAvIkNGzyK5HO).
+- Google Sheets is not used.
 
-1. Open <https://sheets.new>.
-2. Click the title at the top left and name it `Manish & Alivia Wedding`.
+## 1. Create a GitHub access key
 
-You don't need to create tabs. Step 3 creates the `RSVP` and `Uploads` tabs.
-
-Guest photos go to [this Drive folder](https://drive.google.com/drive/folders/1_hC7qifCuOezrvwijxSnAvIkNGzyK5HO), which is already set in the script. The account you use here must be able to edit that folder.
+1. Open [this prefilled GitHub token page](https://github.com/settings/personal-access-tokens/new?name=Wedding%20RSVP%20backend&description=Saves%20wedding%20RSVPs&expires_in=365&contents=write).
+2. Under **Repository access**, choose **Only select repositories**.
+3. Select **only** `manish-weds-alivia-rsvps`.
+4. Under **Repository permissions**, confirm **Contents** is **Read and write**.
+5. Click **Generate token** and copy it. Don't commit it or put it in `config.js`.
 
 ## 2. Paste the script
 
-1. In the Sheet, click **Extensions > Apps Script**.
-2. Delete everything in the editor.
-3. Paste the full contents of `apps-script/Code.gs`.
-4. Click the **Save** icon.
+1. Open <https://script.new> using a Google account that can **edit** the Drive folder.
+2. Name the project `Wedding backend`.
+3. Delete the sample code and paste all of `apps-script/Code.gs`.
+4. Click **Save**.
 
-## 3. Run setup once
+## 3. Add the two private values
 
-1. In the function dropdown at the top, choose `setup`.
-2. Click **Run**.
+1. Click the **gear icon (Project Settings)**.
+2. Under **Script Properties**, click **Add script property** and add:
+
+| Property | Value |
+|---|---|
+| `GITHUB_TOKEN` | The token from step 1 |
+| `ADMIN_PASSWORD` | Your private RSVP page password |
+
+3. Click **Save script properties**.
+
+Never write the password in this repo. Everything here is public.
+
+## 4. Run setup once
+
+1. Go back to the **Editor** (`< >` icon).
+2. Choose `setup` in the function menu and click **Run**.
 3. Click **Review permissions** and choose your account.
-4. If Google says the app isn't verified, click **Advanced > Go to (project name)**. This is your own script.
+4. If Google says the app isn't verified, click **Advanced > Go to Wedding backend**. This is your own script.
 5. Click **Allow**.
-6. Copy the token shown in the **Execution log**. You need it in step 5.
+6. Copy the token shown in the **Execution log**.
 
-`setup` saves the Sheet ID, folder ID and token in Script Properties, so there are no IDs to edit by hand. It also confirms that it can add files to the Drive folder. To change the folder later, edit `DRIVE_FOLDER_ID` at the top of the script, run `setup` again, and publish a new version.
-
-## 4. Deploy as a web app
+## 5. Deploy as a web app
 
 1. Click **Deploy > New deployment**.
 2. Click the gear icon and choose **Web app**.
 3. Set **Execute as** to **Me**.
 4. Set **Who has access** to **Anyone**.
-5. Click **Deploy**.
-6. Copy the **Web app URL**. It ends in `/exec`.
+5. Click **Deploy** and copy the **Web app URL** ending in `/exec`.
 
-## 5. Update config.js
+## 6. Update config.js
 
 ```js
 backend: {
   url: "https://script.google.com/macros/s/YOUR_ID/exec",
-  token: "THE_TOKEN_FROM_STEP_3",
+  token: "THE_TOKEN_FROM_STEP_4",
 },
 ```
 
@@ -55,13 +70,13 @@ git commit -m "Connect backend"
 git push
 ```
 
-## 6. Test it
+## 7. Test it
 
-1. Wait a minute for GitHub Pages to update, then open the site on your phone.
-2. Submit an RSVP and check the `RSVP` tab.
-3. Submit again with the same phone number and check that the same row changes.
-4. Upload a photo on `photos.html` and check the Drive folder and `Uploads` tab.
-5. Delete your test rows before sharing the link. Deleting a row from `Uploads` gives that device its photo allowance back.
+1. Wait a minute for GitHub Pages to update, then submit an RSVP on your phone.
+2. Open <https://manishdhasmana49.github.io/manish-weds-alivia/rsvps.html> and enter your password.
+3. Submit again with the same phone number and check that the same entry changes.
+4. Upload a photo on `photos.html` and check the Drive folder.
+5. Remove test RSVPs from `rsvps.json` in the private repo before sharing the link.
 
 ## Publishing a new version after changing Code.gs
 
@@ -91,8 +106,10 @@ Add these in `config.js`, then push. Until then, guests see "to be announced" or
 ## Good to know
 
 - Photos are saved in a subfolder for each event and named after the guest, such as `Riya Sharma.jpg`, then `Riya Sharma 2.jpg`.
-
-- The token is visible in the public site's code. It stops casual bots, but it isn't a password.
-- If the token leaks or spam appears, change `TOKEN` in Script Properties, update `config.js`, and push.
+- `uploads-log.json` in the Drive folder enforces the 5-photo limit. Keep it there. Removing a device's entries gives that device its allowance back.
+- To change the RSVP password, update `ADMIN_PASSWORD` in Script Properties. No redeploy is needed.
+- The GitHub token expires after a year, which is well past the wedding.
+- After 8 wrong passwords, the RSVP page locks for 15 minutes.
+- The site's `backend.token` is visible in public code. It stops casual bots, but it does not protect RSVP data. The password does that.
 - The 5-photo limit is per browser on a device. A guest who clears browser data or switches device gets a new allowance.
 - Uploaded photos stay private in your Drive unless you share the folder.
