@@ -7,7 +7,9 @@ This takes about 10 minutes. Use the Google account that should own the guest li
 1. Open <https://sheets.new>.
 2. Click the title at the top left and name it `Manish & Alivia Wedding`.
 
-You don't need to create tabs or a Drive folder. Step 3 creates the `RSVP` and `Uploads` tabs and the `Manish & Alivia Wedding` folder in Drive.
+You don't need to create tabs. Step 3 creates the `RSVP` and `Uploads` tabs.
+
+Guest photos go to [this Drive folder](https://drive.google.com/drive/folders/1_hC7qifCuOezrvwijxSnAvIkNGzyK5HO), which is already set in the script. The account you use here must be able to edit that folder.
 
 ## 2. Paste the script
 
@@ -25,7 +27,7 @@ You don't need to create tabs or a Drive folder. Step 3 creates the `RSVP` and `
 5. Click **Allow**.
 6. Copy the token shown in the **Execution log**. You need it in step 5.
 
-`setup` saves the Sheet ID, folder ID and token in Script Properties, so there are no IDs to edit by hand. To use an existing Drive folder, open **Project Settings > Script Properties** and set `ROOT_FOLDER_ID` to the part of the folder URL after `/folders/`.
+`setup` saves the Sheet ID, folder ID and token in Script Properties, so there are no IDs to edit by hand. It also confirms that it can add files to the Drive folder. To change the folder later, edit `DRIVE_FOLDER_ID` at the top of the script, run `setup` again, and publish a new version.
 
 ## 4. Deploy as a web app
 
@@ -73,7 +75,22 @@ Saving the script does **not** update the live site.
 
 The URL stays the same, so `config.js` doesn't change. Avoid **New deployment** here, because it creates a different URL.
 
+## Details to update later
+
+Add these in `config.js`, then push. Until then, guests see "to be announced" or the item stays hidden.
+
+- [ ] WhatsApp contacts for the groom's and bride's sides
+- [ ] Dress codes for the wedding and reception
+- [ ] Hotel details
+- [ ] Train or flight details and the return plan
+- [ ] RSVP closing date
+- [ ] Wedding hashtag
+- [ ] Full venue addresses
+- [ ] Kolkata venue name: the map link says "Utalika Luxury, Prathama", while the site says "Utalika ~ The Condoville"
+
 ## Good to know
+
+- Photos are saved in a subfolder for each event and named after the guest, such as `Riya Sharma.jpg`, then `Riya Sharma 2.jpg`.
 
 - The token is visible in the public site's code. It stops casual bots, but it isn't a password.
 - If the token leaks or spam appears, change `TOKEN` in Script Properties, update `config.js`, and push.

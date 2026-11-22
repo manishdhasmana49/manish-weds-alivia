@@ -3,12 +3,11 @@
  * Run setup() once, then deploy as a web app. See SETUP.md.
  * This file is public on GitHub, so secrets live in Script Properties.
  */
-var ROOT_FOLDER_NAME = 'Manish & Alivia Wedding';
+var DRIVE_FOLDER_ID = '1_hC7qifCuOezrvwijxSnAvIkNGzyK5HO';
 var RSVP_SHEET = 'RSVP';
 var UPLOADS_SHEET = 'Uploads';
 var PHOTO_LIMIT = 5;
 var MAX_BYTES = 10 * 1024 * 1024;
-var TZ = 'Asia/Kolkata';
 
 var RSVP_HEADERS = ['Timestamp', 'Full Name', 'Phone', 'Side', 'Attending', 'Guests', 'Events',
   'Arrival', 'Departure', 'Travelling With Group', 'Accommodation Needed', 'Food', 'Message'];
@@ -22,11 +21,10 @@ function setup() {
     if (!active) throw new Error('Open Apps Script from the Sheet (Extensions > Apps Script), or set SHEET_ID.');
     props.setProperty('SHEET_ID', active.getId());
   }
-  if (!props.getProperty('ROOT_FOLDER_ID')) {
-    var found = DriveApp.getRootFolder().getFoldersByName(ROOT_FOLDER_NAME);
-    var folder = found.hasNext() ? found.next() : DriveApp.getRootFolder().createFolder(ROOT_FOLDER_NAME);
-    props.setProperty('ROOT_FOLDER_ID', folder.getId());
-  }
+  // Fails here, not on the wedding day, if this account can't add files to the folder.
+  var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+  folder.createFile('setup-check.txt', 'Safe to delete.').setTrashed(true);
+  props.setProperty('ROOT_FOLDER_ID', DRIVE_FOLDER_ID);
   if (!props.getProperty('TOKEN')) {
     props.setProperty('TOKEN', Utilities.getUuid().replace(/-/g, ''));
   }
@@ -132,8 +130,8 @@ function upload_(b) {
     }
 
     var now = new Date();
-    var filename = slug_(eventName) + '_' + slug_(name) + '_' + Utilities.formatDate(now, TZ, 'yyyyMMdd-HHmmss') + '.jpg';
     var folder = eventFolder_(eventName);
+    var filename = uniqueFilename_(folder, name);
     var file = folder.createFile(Utilities.newBlob(bytes, 'image/jpeg', filename));
     getSheet_(UPLOADS_SHEET, UPLOAD_HEADERS).appendRow([now, safe_(name), deviceId, safe_(eventName), file.getUrl(), uploadId]);
     return { ok: true, used: mine.length + 1, limit: PHOTO_LIMIT };
@@ -204,8 +202,12 @@ function yesNo_(value) {
   return value === 'yes' || value === 'no' ? value : '';
 }
 
-function slug_(text) {
-  return String(text).replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'guest';
+/** Names a photo after the guest: "Riya Sharma.jpg", then "Riya Sharma 2.jpg". */
+function uniqueFilename_(folder, guestName) {
+  var base = String(guestName).replace(/[\/\\:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Guest';
+  var filename = base + '.jpg';
+  for (var n = 2; folder.getFilesByName(filename).hasNext(); n++) filename = base + ' ' + n + '.jpg';
+  return filename;
 }
 
 function fail_(code, error, retryable) {
