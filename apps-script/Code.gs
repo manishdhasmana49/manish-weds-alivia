@@ -6,7 +6,13 @@
  */
 var DRIVE_FOLDER_ID = '1_hC7qifCuOezrvwijxSnAvIkNGzyK5HO';
 var GITHUB_REPO = 'manishdhasmana49/manish-weds-alivia-rsvps';
-var RSVP_FILE = 'rsvps.json';
+var RSVP_FILE = 'rsvps.csv';
+var RSVP_COLUMNS = [
+  ['First Submitted', 'firstSubmitted'], ['Last Updated', 'updated'], ['Name', 'name'], ['Phone', 'phone'],
+  ['Side', 'side'], ['Attending', 'attending'], ['Guests', 'guests'], ['Events', 'events'], ['Arrival', 'arrival'],
+  ['Departure', 'departure'], ['With Dehradun Group', 'withGroup'], ['Accommodation', 'accommodation'],
+  ['Food', 'food'], ['Message', 'message'],
+];
 var UPLOAD_LOG = 'uploads-log.json';
 var PHOTO_LIMIT = 5;
 var MAX_BYTES = 10 * 1024 * 1024;
@@ -118,19 +124,72 @@ function readRsvps_() {
   if (res.getResponseCode() !== 200) throw new Error('GitHub read failed: ' + res.getResponseCode());
   var file = JSON.parse(res.getContentText());
   var text = Utilities.newBlob(Utilities.base64Decode(String(file.content).replace(/\s/g, ''))).getDataAsString('UTF-8');
-  return { rows: JSON.parse(text || '[]'), sha: file.sha };
+  return { rows: parseRsvpCsv_(text), sha: file.sha };
 }
 
 /** Returns false when another save got there first, so the caller can retry. */
 function writeRsvps_(rows, sha) {
   var res = github_('put', {
     message: 'Update RSVPs', sha: sha,
-    content: Utilities.base64Encode(JSON.stringify(rows, null, 2) + '\n', Utilities.Charset.UTF_8),
+    content: Utilities.base64Encode(rsvpCsv_(rows), Utilities.Charset.UTF_8),
   });
   var code = res.getResponseCode();
   if (code === 200 || code === 201) return true;
   if (code === 409) return false;
   throw new Error('GitHub write failed: ' + code);
+}
+
+/* ---------- CSV ---------- */
+
+/** The leading byte-order mark lets Excel show Hindi and Bengali names correctly. */
+function rsvpCsv_(rows) {
+  var lines = [RSVP_COLUMNS.map(function (c) { return csvCell_(c[0]); }).join(',')];
+  rows.forEach(function (r) {
+    lines.push(RSVP_COLUMNS.map(function (c) {
+      var value = c[1] === 'events' ? (r.events || []).join('; ') : r[c[1]];
+      return csvCell_(value == null ? '' : String(value));
+    }).join(','));
+  });
+  return '\uFEFF' + lines.join('\r\n') + '\r\n';
+}
+
+/** Stops guest text from running as a formula when the file is opened in a spreadsheet. */
+function csvCell_(value) {
+  var text = /^'*[=+\-@\t\r]/.test(value) ? "'" + value : value;
+  return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+}
+
+function parseCsvLines_(text) {
+  var rows = [], row = [], cell = '', quoted = false;
+  for (var i = 0; i < text.length; i++) {
+    var ch = text.charAt(i);
+    if (quoted) {
+      if (ch === '"' && text.charAt(i + 1) === '"') { cell += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else cell += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ',') { row.push(cell); cell = ''; }
+    else if (ch === '\n') { row.push(cell.replace(/\r$/, '')); rows.push(row); row = []; cell = ''; }
+    else cell += ch;
+  }
+  if (cell || row.length) { row.push(cell.replace(/\r$/, '')); rows.push(row); }
+  return rows;
+}
+
+function parseRsvpCsv_(text) {
+  var table = parseCsvLines_(String(text || '').replace(/^\uFEFF/, ''));
+  if (table.length < 2) return [];
+  var header = table[0];
+  return table.slice(1).filter(function (cells) { return cells.join('') !== ''; }).map(function (cells) {
+    var record = {};
+    RSVP_COLUMNS.forEach(function (c) {
+      var value = cells[header.indexOf(c[0])] || '';
+      record[c[1]] = /^'+[=+\-@\t\r]/.test(value) ? value.slice(1) : value;
+    });
+    record.guests = parseInt(record.guests, 10) || 0;
+    record.events = record.events ? record.events.split('; ') : [];
+    return record;
+  });
 }
 
 /* ---------- Photos ---------- */

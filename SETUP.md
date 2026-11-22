@@ -2,7 +2,7 @@
 
 This takes about 10 minutes.
 
-- RSVPs are saved in the **private** GitHub repo `manish-weds-alivia-rsvps`, in `rsvps.json`.
+- RSVPs are saved in the **private** GitHub repo `manish-weds-alivia-rsvps`, in `rsvps.csv`, which opens in Excel or Google Sheets.
 - You read them on the hidden, password-protected `rsvps.html` page.
 - Guest photos go to [this Drive folder](https://drive.google.com/drive/folders/1_hC7qifCuOezrvwijxSnAvIkNGzyK5HO).
 - Google Sheets is not used.
@@ -76,7 +76,7 @@ git push
 2. Open <https://manishdhasmana49.github.io/manish-weds-alivia/rsvps.html> and enter your password.
 3. Submit again with the same phone number and check that the same entry changes.
 4. Upload a photo on `photos.html` and check the Drive folder.
-5. Remove test RSVPs from `rsvps.json` in the private repo before sharing the link.
+5. Remove test rows from `rsvps.csv` in the private repo, keeping the header row, before sharing the link.
 
 ## Publishing a new version after changing Code.gs
 
