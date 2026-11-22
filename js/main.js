@@ -14,7 +14,22 @@
     $("groomName").textContent = W.couple.groom.name;
     $("brideName").textContent = W.couple.bride.name;
     $("invite").textContent = W.hero.invitation;
-    $("heroDate").textContent = W.hero.dateLabel + " · " + W.hero.placeLabel;
+    $("heroEyebrow").textContent = W.hero.eyebrow;
+    [["wedding", "wed"], ["reception", "rec"]].forEach(function (pair) {
+      var e = W.events.filter(function (x) { return x.id === pair[0]; })[0];
+      if (!e) return;
+      var d = new Date(e.date + "T12:00:00+05:30");
+      $(pair[1] + "Date").replaceChildren(A.fmt(d, { day: "2-digit" }), el("i", { text: "/" }), A.fmt(d, { month: "2-digit" }), el("i", { text: "/" }), A.fmt(d, { year: "numeric" }));
+      $(pair[1] + "Place").textContent = A.venueOf(e).name;
+    });
+    if (W.hero.photo && isSet(W.hero.photo.src)) {
+      var hp = $("heroPhoto"), phone = window.matchMedia("(max-width: 700px)").matches;
+      hp.alt = W.hero.photo.alt || "";
+      hp.hidden = false;
+      hp.src = phone && W.hero.photo.mobile ? W.hero.photo.mobile : W.hero.photo.src;
+    } else {
+      $("home").classList.remove("has-photo");
+    }
     if (isSet(W.hero.hashtag)) { $("hashtag").textContent = W.hero.hashtag; $("hashtag").hidden = false; }
     $("footerText").textContent = W.site.footer;
     $("photoLimit").textContent = W.photos.limitPerGuest;
@@ -36,12 +51,38 @@
 
   function renderStory() {
     var paras = (W.story.paragraphs || []).filter(isSet);
+    var photos = (W.story.photos || []).filter(function (p) { return isSet(p.src); });
     var link = document.querySelector('[data-nav="story"]');
-    if (!paras.length) { link.hidden = true; return; }
+    if (!paras.length && !photos.length) { link.hidden = true; return; }
     $("story").hidden = false;
     $("storyBody").append.apply($("storyBody"), paras.map(function (p) { return el("p", { text: p }); }));
-    (W.story.photos || []).forEach(function (p) {
-      $("storyPhotos").append(el("img", { src: p.src, alt: p.alt || "", loading: "lazy", decoding: "async", width: 400, height: 500 }));
+    photos.forEach(function (p) { $("storyPhotos").append(figure(p)); });
+  }
+
+  function figure(p) {
+    return el("figure", { class: "frame" },
+      el("img", { src: p.src, alt: p.alt || "", loading: "lazy", decoding: "async", width: 800, height: 1000 }),
+      isSet(p.caption) && el("figcaption", { text: p.caption }));
+  }
+
+  function renderGallery() {
+    var photos = (W.gallery || []).filter(function (p) { return isSet(p.src); });
+    if (!photos.length) { document.querySelector('[data-nav="gallery"]').hidden = true; return; }
+    $("gallery").hidden = false;
+    photos.forEach(function (p) { $("galleryGrid").append(figure(p)); });
+  }
+
+  /* Numbers only the sections that are showing, so hidden ones leave no gaps. */
+  function renderHeadings() {
+    var n = 0;
+    document.querySelectorAll("[data-head]").forEach(function (box) {
+      var h = W.headings[box.dataset.head];
+      if (box.closest("section").hidden) return;
+      n++;
+      box.replaceChildren(
+        el("p", { class: "eyebrow" }, el("b", { text: String(n).padStart(2, "0") }), el("span", { text: "/" }), el("span", { text: h.label })),
+        el("h2", {}, h.title, " ", el("em", { text: h.italic })));
+      if (h.intro) box.append(el("p", { class: "head-intro", text: h.intro }));
     });
   }
 
@@ -86,18 +127,18 @@
       var d = new Date(e.date + "T12:00:00+05:30"), v = A.venueOf(e), time = A.timeLabel(e);
       var dress = e.dressCode === "" ? "" : isSet(e.dressCode) ? e.dressCode : "Dress code to be shared";
       return el("li", { class: "event" + (e.rsvp === false ? " minor" : "") },
-        el("div", { class: "when" }, el("span", { text: A.fmt(d, { weekday: "short" }) }), el("b", { text: A.fmt(d, { day: "numeric" }) }), el("span", { text: A.fmt(d, { month: "short" }) })),
         el("div", { class: "event-body" },
+          el("p", { class: "ev-date", text: A.fmt(d, { weekday: "long", day: "numeric", month: "long" }) }),
           el("h3", { text: e.title }),
           e.music && el("div", { class: "music", role: "img", "aria-label": "Dhol-damau and shehnai" }, icon("m-dhol"), icon("m-shehnai")),
           el("ul", { class: "meta" },
             time && el("li", {}, icon("i-clock"), el("span", { text: time })),
             v.name && el("li", {}, icon("i-pin"), el("span", { text: v.name })),
-            dress && el("li", {}, icon("i-shirt"), el("span", { text: dress }))),
-          el("div", { class: "actions" },
-            v.mapUrl && el("a", { class: "btn small", href: v.mapUrl, target: "_blank", rel: "noopener" }, icon("i-pin"), "Open in Google Maps"),
-            el("a", { class: "btn small", href: googleCal(e), target: "_blank", rel: "noopener", "aria-label": "Add " + e.title + " to Google Calendar" }, icon("i-cal"), "Add to Calendar"),
-            el("button", { class: "btn small", type: "button", "aria-label": "Download " + e.title + " calendar file", onclick: function () { downloadIcs(e); } }, ".ics"))));
+            dress && el("li", {}, icon("i-shirt"), el("span", { text: dress })))),
+        el("div", { class: "actions" },
+          v.mapUrl && el("a", { class: "btn small", href: v.mapUrl, target: "_blank", rel: "noopener" }, icon("i-pin"), "Open in Google Maps"),
+          el("a", { class: "btn small", href: googleCal(e), target: "_blank", rel: "noopener", "aria-label": "Add " + e.title + " to Google Calendar" }, icon("i-cal"), "Add to Calendar"),
+          el("button", { class: "btn small", type: "button", "aria-label": "Download " + e.title + " calendar file", onclick: function () { downloadIcs(e); } }, ".ics")));
     }));
   }
 
@@ -119,7 +160,7 @@
   function renderTravel() {
     var t = W.travel, box = $("groomTravel");
     box.replaceChildren();
-    if (side !== "bride") {
+    if (t.groomPlan.length) {
       box.append(el("article", { class: "card" },
         el("h3", { text: t.groomPlanTitle }),
         el("ol", { class: "steps" }, t.groomPlan.map(function (s) { return el("li", {}, el("b", { text: s.when }), el("span", { text: s.what })); })),
@@ -150,6 +191,28 @@
             el("a", { class: "btn", href: "https://wa.me/" + c.phone.replace(/\D/g, ""), target: "_blank", rel: "noopener" }, icon("i-wa"), "Chat on WhatsApp"));
         }) : el("p", { class: "soon", text: "Contact details coming soon." }));
     }));
+  }
+
+  function renderPlaces() {
+    W.places.forEach(function (group) {
+      $("placeList").append(el("article", { class: "places" }, el("h3", { text: group.city }),
+        el("ul", {}, group.items.map(function (p) {
+          var label = p.label || p.name;
+          return el("li", {}, el("div", {}, el("strong", { text: label }), el("p", { text: p.note })),
+            el("a", { class: "place-link", href: "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(p.name), target: "_blank", rel: "noopener", "aria-label": "Open " + label + " in Google Maps" }, icon("i-pin"), "Map"));
+        }))));
+    });
+  }
+
+  function renderWeather() {
+    W.weather.cities.forEach(function (c) {
+      $("weatherList").append(el("article", { class: "card weather" },
+        el("p", { class: "ev-date", text: c.when }), el("h3", { text: c.city }),
+        el("p", { class: "temp", text: c.typical }),
+        el("p", { class: "temp-note", text: "Typical January range, not a forecast" }),
+        el("a", { class: "btn wide", href: W.weather.url, target: "_blank", rel: "noopener", "aria-label": "Open the official IMD forecast for " + c.city }, "Official IMD forecast", icon("i-arrow")),
+        el("p", { class: "temp-note", text: "On the IMD page, choose " + c.steps + "." })));
+    });
   }
 
   function renderFaq() {
@@ -267,6 +330,18 @@
 
   function setupNav() {
     var links = Array.from(document.querySelectorAll(".nav a"));
+    var header = $("siteHeader"), menu = $("menuBtn");
+    function setMenu(open) {
+      header.classList.toggle("open", open);
+      menu.setAttribute("aria-expanded", String(open));
+      menu.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    }
+    function onScroll() { header.classList.toggle("solid", window.scrollY > 40); }
+    menu.addEventListener("click", function () { setMenu(!header.classList.contains("open")); });
+    links.forEach(function (a) { a.addEventListener("click", function () { setMenu(false); }); });
+    document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") setMenu(false); });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
     if (!("IntersectionObserver" in window)) return;
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
@@ -274,15 +349,15 @@
         links.forEach(function (a) {
           var on = a.getAttribute("href") === "#" + en.target.id;
           a.classList.toggle("on", on);
-          if (on) { a.setAttribute("aria-current", "true"); a.parentNode.scrollTo({ left: a.offsetLeft - 60 }); } else a.removeAttribute("aria-current");
+          if (on) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
         });
       });
     }, { rootMargin: "-45% 0px -50% 0px" });
     links.forEach(function (a) { var t = document.querySelector(a.getAttribute("href")); if (t) io.observe(t); });
   }
 
-  renderHero(); renderStory(); renderVenues(); renderFaq();
-  if (!fixedSide) {
+  renderHero(); renderStory(); renderGallery(); renderHeadings(); renderVenues(); renderPlaces(); renderWeather(); renderFaq();
+  if (!fixedSide && W.events.some(function (e) { return e.sides.length < 2; })) {
     $("sideToggle").hidden = false;
     $("sideToggle").addEventListener("click", function (ev) { var b = ev.target.closest("button"); if (b) applySide(b.dataset.side); });
   }

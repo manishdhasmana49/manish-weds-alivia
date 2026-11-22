@@ -1,6 +1,7 @@
 /* Shared helpers for both pages. */
 (function () {
   var W = window.WEDDING;
+  W.events = W.events.filter(function (e) { return e.show !== false; });
   var TZ = "Asia/Kolkata";
 
   function isSet(v) {
